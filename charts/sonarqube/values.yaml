@@ -200,7 +200,8 @@ prometheusExporter:
 #    - "https://github.com/AmadeusITGroup/sonar-stash/releases/download/1.3.0/sonar-stash-plugin-1.3.0.jar"
 #    - "https://github.com/SonarSource/sonar-ldap/releases/download/2.2-RC3/sonar-ldap-plugin-2.2.0.601.jar"
 plugins:
-  install: []
+  install:
+    - "https://github.com/SonarQubeCommunity/sonar-lua/releases/download/v1.0/sonar-lua-plugin-1.0.jar"
   lib: []
 
   # For use behind a corporate proxy when downloading plugins
