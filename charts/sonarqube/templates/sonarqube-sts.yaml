@@ -143,9 +143,10 @@ spec:
             {{- if and .Values.sonarProperties .Values.sonarSecretProperties }}
             - mountPath: {{ .Values.sonarqubeFolder }}/conf/
               name: concat-dir
-            {{- else if or .Values.sonarProperties (not .Values.elasticsearch.bootstrapChecks) }}
-            - mountPath: {{ .Values.sonarqubeFolder }}/conf/
-              name: config
+            # ConfigMap is read only and init_fs changes(writes) the owner of the sonarqubeFolder
+            # {{- else if or .Values.sonarProperties (not .Values.elasticsearch.bootstrapChecks) }}
+            # - mountPath: {{ .Values.sonarqubeFolder }}/conf/
+            #   name: config
             {{- end }}
             {{- if .Values.sonarSecretKey }}
             - mountPath: {{ .Values.sonarqubeFolder }}/secret/
@@ -310,8 +311,9 @@ spec:
             - mountPath: {{ .Values.sonarqubeFolder }}/conf/
               name: concat-dir
             {{- else if or .Values.sonarProperties (not .Values.elasticsearch.bootstrapChecks) }}
-            - mountPath: {{ .Values.sonarqubeFolder }}/conf/
+            - mountPath: {{ .Values.sonarqubeFolder }}/conf/sonar.properties
               name: config
+              subPath: sonar.properties
             {{- end }}
             {{- if .Values.sonarSecretKey }}
             - mountPath: {{ .Values.sonarqubeFolder }}/secret/
@@ -350,8 +352,9 @@ spec:
             - mountPath: /tmp
               name: tmp-dir
             {{- if .Values.prometheusExporter.enabled }}
-            - mountPath: {{ .Values.sonarqubeFolder }}/conf
+            - mountPath: {{ .Values.sonarqubeFolder }}/conf/prometheus-config.yaml
               name: prometheus-config
+              subPath: prometheus-config.yaml
             {{- end }}
     {{- if .Values.nodeSelector }}
       nodeSelector:
@@ -373,9 +376,9 @@ spec:
       - name: config
         configMap:
           name: {{ template "sonarqube.fullname" . }}-config
-          items:
-          - key: sonar.properties
-            path: sonar.properties
+          # items:
+          # - key: sonar.properties
+          #   path: sonar.properties
       {{- end }}
       {{- if .Values.sonarSecretProperties }}
       - name: secret-config
@@ -428,9 +431,9 @@ spec:
       - name: prometheus-config
         configMap:
           name: {{ template "sonarqube.fullname" . }}-prometheus-config
-          items:
-            - key: prometheus-config.yaml
-              path: prometheus-config.yaml
+          # items:
+          #   - key: prometheus-config.yaml
+          #     path: prometheus-config.yaml
       {{- end }}
       - name: sonarqube
         {{- if .Values.persistence.enabled }}
