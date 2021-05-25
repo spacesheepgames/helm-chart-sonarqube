@@ -2,7 +2,7 @@
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
-  name: {{ template "sonarqube.fullname" . }}
+  name: {{ template "sonarqube.fullname" . }}-claim
   labels:
     app: {{ template "sonarqube.name" . }}
     chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"

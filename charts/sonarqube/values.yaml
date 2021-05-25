@@ -1,7 +1,7 @@
 # Default values for sonarqube.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
-
+fullnameOverride: "sonarqube"
 deploymentType: "StatefulSet"
 
 # If the deployment Type is set to Deployment sonarqube is deployed as a replica set
@@ -50,7 +50,7 @@ nginx:
   enabled: false
 
 service:
-  type: ClusterIP
+  type: NodePort
   externalPort: 9000
   internalPort: 9000
   labels:
@@ -95,18 +95,18 @@ affinity: {}
 # taint a node with the following command to mark it as not schedulable for new pods
 # kubectl taint nodes <node> sonarqube=true:NoSchedule
 # The following statement will tolerate this taint and as such reverse a node for sonarqube
-tolerations: []
-#  - key: "sonarqube"
-#    operator: "Equal"
-#    value: "true"
-#    effect: "NoSchedule"
+tolerations:
+  - key: "sonarqube"
+    operator: "Equal"
+    value: "true"
+    effect: "NoSchedule"
 
 # Node labels for pod assignment
 # Ref: https://kubernetes.io/docs/user-guide/node-selection/
 # add a label to a node with the following command
 # kubectl label node <node> sonarqube=true
-nodeSelector: {}
-#  sonarqube: "true"
+nodeSelector: 
+  sonarqube: "true"
 
 # hostAliases allows the modification of the hosts file inside a container
 hostAliases: []
@@ -157,7 +157,7 @@ extraInitContainers: {}
 ## Provide a secret containing one or more certificate files in the keys that will be added to cacerts
 ## The cacerts file will be set via SONARQUBE_WEB_JVM_OPTS and SONAR_CE_JAVAOPTS
 ##
-## caCerts:
+# caCerts:
   # image: adoptopenjdk/openjdk11:alpine
   # secret: your-secret
 
@@ -200,7 +200,8 @@ prometheusExporter:
 #    - "https://github.com/AmadeusITGroup/sonar-stash/releases/download/1.3.0/sonar-stash-plugin-1.3.0.jar"
 #    - "https://github.com/SonarSource/sonar-ldap/releases/download/2.2-RC3/sonar-ldap-plugin-2.2.0.601.jar"
 plugins:
-  install: []
+  install:
+    - "https://github.com/SonarQubeCommunity/sonar-lua/releases/download/v1.0/sonar-lua-plugin-1.0.jar"
   lib: []
 
   # For use behind a corporate proxy when downloading plugins
@@ -242,20 +243,20 @@ annotations: {}
 ## The usage of SonarQube and the surrounding infrastructure.
 ## Adjust these values to your needs, but make sure that the memory limit is never under 4 GB
 resources:
-  limits:
-    cpu: 800m
-    memory: 4096M
+  # limits:
+  #   cpu: 800m
+  #   memory: 4096M
   requests:
     cpu: 400m
     memory: 2Gi
 persistence:
-  enabled: false
+  enabled: true
   ## Set annotations on pvc
   annotations: {}
 
   ## Specify an existing volume claim instead of creating a new one.
   ## When using this option all following options like storageClass, accessMode and size are ignored.
-  # existingClaim:
+  existingClaim: sonarqube-fast-claim
 
   ## If defined, storageClassName: <storageClass>
   ## If set to "-", storageClassName: "", which disables dynamic provisioning
@@ -263,7 +264,7 @@ persistence:
   ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
   ##   GKE, AWS & OpenStack)
   ##
-  storageClass:
+  storageClass: ssd-retain
   accessMode: ReadWriteOnce
   size: 5Gi
   uid: 1000
@@ -304,54 +305,54 @@ jdbcDatabaseType: postgresql
 ## ref: https://github.com/kubernetes/charts/blob/master/stable/postgresql/README.md
 postgresql:
   # Enable to deploy the PostgreSQL chart
-  enabled: true
+  enabled: false
   # To use an external PostgreSQL instance, set enabled to false and uncomment
   # the line below:
-  # postgresqlServer: ""
+  postgresqlServer: ""
   # To use an external secret for the password for an external PostgreSQL
   # instance, set enabled to false and provide the name of the secret on the
   # line below:
-  # existingSecret: ""
-  # existingSecretPasswordKey: "postgresql-password"
-  postgresqlUsername: "sonarUser"
-  postgresqlPassword: "sonarPass"
-  postgresqlDatabase: "sonarDB"
+  existingSecret: "sonarqube-postgres-credentials"
+  existingSecretPasswordKey: "password"
+  postgresqlUsername: "sonarqube_user"
+  # postgresqlPassword: "sonarPass"
+  postgresqlDatabase: "sonarqube"
   # Specify the TCP port that PostgreSQL should use
   service:
     port: 5432
-  resources:
-    limits:
-      cpu: 2
-      memory: 2Gi
-    requests:
-      cpu: 100m
-      memory: 200Mi
-  persistence:
-    enabled: true
-    accessMode: ReadWriteOnce
-    size: 20Gi
-    storageClass:
-  securityContext:
-    # For standard Kubernetes deployment, set enabled=true
-    # If using OpenShift, enabled=false for restricted SCC and enabled=true for anyuid/nonroot SCC
-    enabled: true
-    # fsGroup and runAsUser specifications below are not applied if enabled=false. enabled=false is the required setting for OpenShift "restricted SCC" to work successfully.
-    # postgresql dockerfile sets user as 1001
-    fsGroup: 1001
-    runAsUser: 1001
-  volumePermissions:
-    # For standard Kubernetes deployment, set enabled=false
-    # For OpenShift, set enabled=true and ensure to set volumepermissions.securitycontext.runAsUser below.
-    enabled: false
-    # if using restricted SCC set runAsUser: "auto" and if running under anyuid/nonroot SCC - runAsUser needs to match runAsUser above
-    securityContext:
-      runAsUser: 0
-  shmVolume:
-    chmod:
-      enabled: false
-  serviceAccount:
-    ## If enabled = true, and name is not set, postgreSQL will create a serviceAccount
-    enabled: false
+  # resources:
+  #   limits:
+  #     cpu: 2
+  #     memory: 2Gi
+  #   requests:
+  #     cpu: 100m
+  #     memory: 200Mi
+  # persistence:
+  #   enabled: true
+  #   accessMode: ReadWriteOnce
+  #   size: 20Gi
+  #   storageClass:
+  # securityContext:
+  #   # For standard Kubernetes deployment, set enabled=true
+  #   # If using OpenShift, enabled=false for restricted SCC and enabled=true for anyuid/nonroot SCC
+  #   enabled: true
+  #   # fsGroup and runAsUser specifications below are not applied if enabled=false. enabled=false is the required setting for OpenShift "restricted SCC" to work successfully.
+  #   # postgresql dockerfile sets user as 1001
+  #   fsGroup: 1001
+  #   runAsUser: 1001
+  # volumePermissions:
+  #   # For standard Kubernetes deployment, set enabled=false
+  #   # For OpenShift, set enabled=true and ensure to set volumepermissions.securitycontext.runAsUser below.
+  #   enabled: false
+  #   # if using restricted SCC set runAsUser: "auto" and if running under anyuid/nonroot SCC - runAsUser needs to match runAsUser above
+  #   securityContext:
+  #     runAsUser: 0
+  # shmVolume:
+  #   chmod:
+  #     enabled: false
+  # serviceAccount:
+  #   ## If enabled = true, and name is not set, postgreSQL will create a serviceAccount
+  #   enabled: false
 #    name:
 
 # Additional labels to add to the pods:
