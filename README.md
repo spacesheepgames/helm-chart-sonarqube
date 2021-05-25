@@ -1,5 +1,33 @@
-SonarQube Helm Chart
+SonarQube Helm Chart (Custom)
 =================
+
+Main differences
+---------------
+* At `charts/sonarqube/static` we have our PVC and PV that always use the same disk to store sonarqube data
+* We do not run it in a dedicated namespace as the original chart does
+
+Deploy
+---------------
+Fill the values in `charts/sonarqube/values.yaml`:
+
+**Be careful to not commit it**
+```
+monitoringPasscode: <passcode>
+
+sonarProperties:
+  sonar.core.serverBaseURL: <serverUrl>
+
+postgresql:
+  postgresqlServer: <postgresServer>
+```
+Deploy it using helm:
+```
+cd charts/sonarqube
+helm upgrade --install -f values.yaml sonarqube ./
+``` 
+
+Original Readme
+===============
 
 About this Repo
 ----------------
