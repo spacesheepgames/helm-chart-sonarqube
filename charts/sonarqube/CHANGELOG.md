@@ -1,6 +1,10 @@
 # SonarQube Chart Changelog
 All changes to this chart will be documented in this file.
 
+## [1.0.4+1]
+* specific config
+* add log4j [vulnerability fix](https://community.sonarsource.com/t/sonarqube-sonarcloud-and-the-log4j-vulnerability/54721)
+
 ## [1.0.4]
 * fix for missing `serviceAccountName` in STS deployment kind
 
