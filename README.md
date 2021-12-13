@@ -20,6 +20,9 @@ sonarProperties:
 postgresql:
   postgresqlServer: <postgresServer>
 ```
+
+Make sure you are using the correct cluster.
+
 Deploy it using helm:
 ```
 cd charts/sonarqube
